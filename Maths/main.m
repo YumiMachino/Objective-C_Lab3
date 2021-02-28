@@ -7,9 +7,11 @@
 
 #import <Foundation/Foundation.h>
 #include <stdio.h>
-#import "AdditionQuestion.h"
+#import "Question.h"
 #import "InputHandler.h"
 #import "ScoreKeeper.h"
+#import "QuestionManager.h"
+#import "QuestionFactory.h"
 
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
@@ -17,6 +19,8 @@ int main(int argc, const char * argv[]) {
         BOOL game_on = YES;
         
         ScoreKeeper *scoreKeeper = [[ScoreKeeper alloc]initWithRightAnswer:0 AndWith:0];
+        QuestionManager *questionManager = [QuestionManager new];
+        QuestionFactory *questionFactory = [QuestionFactory new];
         
         NSString *user_input = [InputHandler get_user_input];
         if (user_input == NULL) {
@@ -25,9 +29,13 @@ int main(int argc, const char * argv[]) {
             NSLog(@"Your input: %@", user_input);
             
             while (game_on == YES) {
-                /// creating an instance, allocating memory size of the object
-                AdditionQuestion *addition_question = [[AdditionQuestion alloc] init];
-                NSLog(@"question: %@ (hit 'q' to quit!) ", [addition_question question]);
+                
+                Question *pickedQuestion = [questionFactory generateRandomQuestion];
+
+                /// add question to the array
+                [[questionManager questions]addObject:pickedQuestion];
+
+                NSLog(@"question: %@ (hit 'q' to quit!) ", [pickedQuestion question]);
                 NSString *user_second_input = [InputHandler get_user_input];
                 if ([user_second_input isEqualToString: @"q"]) {
                     game_on = NO;
@@ -37,12 +45,14 @@ int main(int argc, const char * argv[]) {
                 }
                 
                 NSInteger converted_input = [user_second_input intValue];
-                if (converted_input == [addition_question answer]) {
+                if (converted_input == [pickedQuestion answer]) {
                     NSLog(@"Right!");
                     [scoreKeeper setRightAnswer:[scoreKeeper rightAnswer] + 1];
+                    [questionManager timeOutput];
                 } else  {
                     NSLog(@"Wrong!");
                     [scoreKeeper setWrongAnswer:[scoreKeeper wrongAnswer] + 1];
+                    [questionManager timeOutput];
                 }
             }
         }
